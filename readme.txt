@@ -9,7 +9,13 @@ License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
 == Description ==
 
-Rejoiner helps convert abandoned carts into customers. Full-service cart abandonment email campaigns for WooCommerce. You will need a free account, [signup at Rejoiner.com](https://app.rejoiner.com/signup).
+Rejoiner enables any WooCommerce merchant to send automated, segmented email campaigns like: cart abandonment, post-purchase, welcome series, win back & more. The Rejoiner add-on is simple to install and takes just a few minutes to configure. Their cart abandonment campaigns alone can convert up to 15% of abandoners into paying customers. They provide full service set up & support and will even design your first campaign for free.  Better yet, their 14-day free trial doesn't start until you've generated real revenue. To get started, [sign up for an account today](https://app.rejoiner.com/signup).
+
+* Reliable, authenticated email delivery = no messing with PHP sendmail
+* Flexible scheduling & real-time delivery = no cron jobs to set up or manage
+* Segment campaigns based on items in cart, cart value, customer purchase history & more 
+* Regenerate user sessions across all devices
+* Free custom templates for every new client
 
 == Installation ==
 
