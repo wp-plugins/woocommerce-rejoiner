@@ -125,8 +125,8 @@ class WC_Rejoiner extends WC_Integration {
 						'item_qty' => $cart_item['quantity'],
 						'price' => $_product->get_price(),
 						'qty_price' => $cart_item['line_total'],
-						'image_url' => get_site_url() . $image,
-						'description' => str_replace( "'", "\'", $_product->post->post_content )
+						'image_url' => $this->format_image_url( $image ),
+						'description' => $this->format_description( $_product->post->post_excerpt )
 					);
 	                
    					$savecart[] = array(
@@ -144,8 +144,8 @@ class WC_Rejoiner extends WC_Integration {
 						'item_qty' => $cart_item['quantity'],
 						'price' => $_product->get_price(),
 						'qty_price' => $cart_item['line_total'],
-						'image_url' => get_site_url() . $image,
-						'description' => str_replace( "'", "\'", $_product->post->post_content )
+						'image_url' => $this->format_image_url( $image ),
+						'description' => $this->format_description( $_product->post->post_excerpt )
 					);
 					
 					$savecart[] = array(
@@ -172,6 +172,27 @@ class WC_Rejoiner extends WC_Integration {
 		
 	}
 
+	function format_description( $text ) {
+		
+		$text = str_replace( "'", "\'", strip_tags( $text ) );
+		$text = str_replace( array("\r", "\n"), "", $text );
+		
+		return $text;
+		
+	}
+
+	function format_image_url( $url ) {
+		
+		if( stripos( $url, 'http' ) === false ) {
+			
+			$url = get_site_url() . $url;
+			
+		}
+		
+		return $url;
+		
+	}
+	
 	function build_rejoiner_push( $items, $cart ) {
 	
 		global $woocommerce;
