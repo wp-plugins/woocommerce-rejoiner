@@ -57,118 +57,122 @@ class WC_Rejoiner extends WC_Integration {
     } 
     
 	function rejoiner_tracking_code() {
-
-		global $woocommerce;
 		
-		$subtotal = 0;
-		$items = array();
-		$savecart = array();
-			
-		foreach( WC()->cart->get_cart() as $cart_item_key => $cart_item ) {
-			
-			$_product = apply_filters( 'woocommerce_cart_item_product', $cart_item['data'], $cart_item, $cart_item_key );
+		if( is_cart() || is_checkout() ) {
 				
-			if ( $_product && $_product->exists() && $cart_item['quantity'] > 0 && apply_filters( 'woocommerce_checkout_cart_item_visible', true, $cart_item, $cart_item_key ) ) {
+			global $woocommerce;
 			
-				$thumb_id = get_post_thumbnail_id( $_product->post->ID );
-
-				$thumb_url = wp_get_attachment_image_src( $thumb_id, 'shop_thumbnail', true) ;
-
-				if( !empty($thumb_url[0]) ) {
+			$subtotal = 0;
+			$items = array();
+			$savecart = array();
 				
-					$image = $thumb_url[0];
+			foreach( WC()->cart->get_cart() as $cart_item_key => $cart_item ) {
+				
+				$_product = apply_filters( 'woocommerce_cart_item_product', $cart_item['data'], $cart_item, $cart_item_key );
 					
-				} else {
+				if ( $_product && $_product->exists() && $cart_item['quantity'] > 0 && apply_filters( 'woocommerce_checkout_cart_item_visible', true, $cart_item, $cart_item_key ) ) {
 				
-					$image = wc_placeholder_img( 'shop_thumbnail' );
+					$thumb_id = get_post_thumbnail_id( $_product->post->ID );
+	
+					$thumb_url = wp_get_attachment_image_src( $thumb_id, 'shop_thumbnail', true) ;
+	
+					if( !empty($thumb_url[0]) ) {
 					
+						$image = $thumb_url[0];
+						
+					} else {
+					
+						$image = wc_placeholder_img( 'shop_thumbnail' );
+						
+					}
+	
+					$subtotal = $subtotal+$itemtotal;
+					
+					if( $_product->variation_id > 0 ) {		
+						
+						$variantname = '';
+						
+						foreach ( $cart_item['variation'] as $name => $value ) {
+		  
+		                      if ( '' === $value )
+		                          continue;
+		  
+		                      $taxonomy = wc_attribute_taxonomy_name( str_replace( 'attribute_pa_', '', urldecode( $name ) ) );
+		  
+		                      if ( taxonomy_exists( $taxonomy ) ) {
+		                          $term = get_term_by( 'slug', $value, $taxonomy );
+		                          if ( ! is_wp_error( $term ) && $term && $term->name ) {
+		                              $value = $term->name;
+		                          }
+		                          $label = wc_attribute_label( $taxonomy );
+		 
+		                      } else {
+		                         $value              = apply_filters( 'woocommerce_variation_option_name', $value );
+		                         $product_attributes = $cart_item['data']->get_attributes();
+		                         if ( isset( $product_attributes[ str_replace( 'attribute_', '', $name ) ] ) ) {
+		                             $label = wc_attribute_label( $product_attributes[ str_replace( 'attribute_', '', $name ) ]['name'] );
+		                         } else {
+		                             $label = $name;
+		                         }
+		                     }
+							 
+							 $variantname.= ', ' . $label . ': ' . $value;
+		                     $item_data[$name] = $value;
+		                     	                     
+		                }
+		                
+		                $items[] = array(
+							'product_id' => $_product->post->ID,
+							'name' => apply_filters( 'woocommerce_cart_item_name', $_product->get_title(), $cart_item, $cart_item_key ) . $variantname,
+							'item_qty' => $cart_item['quantity'],
+							'price' => $_product->get_price(),
+							'qty_price' => $cart_item['line_total'],
+							'image_url' => $this->format_image_url( $image ),
+							'description' => $this->format_description( $_product->post->post_excerpt )
+						);
+		                
+	   					$savecart[] = array(
+							'product_id' => $_product->post->ID,
+							'item_qty' => $cart_item['quantity'],
+							'variation_data' => $item_data,
+							'variation_id' => $_product->variation_id
+						);
+	
+					} else {
+						
+						$items[] = array(
+							'product_id' => $_product->post->ID,
+							'name' => apply_filters( 'woocommerce_cart_item_name', $_product->get_title(), $cart_item, $cart_item_key ),
+							'item_qty' => $cart_item['quantity'],
+							'price' => $_product->get_price(),
+							'qty_price' => $cart_item['line_total'],
+							'image_url' => $this->format_image_url( $image ),
+							'description' => $this->format_description( $_product->post->post_excerpt )
+						);
+						
+						$savecart[] = array(
+							'product_id' => $_product->post->ID,
+							'item_qty' => $cart_item['quantity']
+						);
+						
+					}
+						
 				}
-
-				$subtotal = $subtotal+$itemtotal;
 				
-				if( $_product->variation_id > 0 ) {		
-					
-					$variantname = '';
-					
-					foreach ( $cart_item['variation'] as $name => $value ) {
-	  
-	                      if ( '' === $value )
-	                          continue;
-	  
-	                      $taxonomy = wc_attribute_taxonomy_name( str_replace( 'attribute_pa_', '', urldecode( $name ) ) );
-	  
-	                      if ( taxonomy_exists( $taxonomy ) ) {
-	                          $term = get_term_by( 'slug', $value, $taxonomy );
-	                          if ( ! is_wp_error( $term ) && $term && $term->name ) {
-	                              $value = $term->name;
-	                          }
-	                          $label = wc_attribute_label( $taxonomy );
-	 
-	                      } else {
-	                         $value              = apply_filters( 'woocommerce_variation_option_name', $value );
-	                         $product_attributes = $cart_item['data']->get_attributes();
-	                         if ( isset( $product_attributes[ str_replace( 'attribute_', '', $name ) ] ) ) {
-	                             $label = wc_attribute_label( $product_attributes[ str_replace( 'attribute_', '', $name ) ]['name'] );
-	                         } else {
-	                             $label = $name;
-	                         }
-	                     }
-						 
-						 $variantname.= ', ' . $label . ': ' . $value;
-	                     $item_data[$name] = $value;
-	                     	                     
-	                }
-	                
-	                $items[] = array(
-						'product_id' => $_product->post->ID,
-						'name' => apply_filters( 'woocommerce_cart_item_name', $_product->get_title(), $cart_item, $cart_item_key ) . $variantname,
-						'item_qty' => $cart_item['quantity'],
-						'price' => $_product->get_price(),
-						'qty_price' => $cart_item['line_total'],
-						'image_url' => $this->format_image_url( $image ),
-						'description' => $this->format_description( $_product->post->post_excerpt )
-					);
-	                
-   					$savecart[] = array(
-						'product_id' => $_product->post->ID,
-						'item_qty' => $cart_item['quantity'],
-						'variation_data' => $item_data,
-						'variation_id' => $_product->variation_id
-					);
-
-				} else {
-					
-					$items[] = array(
-						'product_id' => $_product->post->ID,
-						'name' => apply_filters( 'woocommerce_cart_item_name', $_product->get_title(), $cart_item, $cart_item_key ),
-						'item_qty' => $cart_item['quantity'],
-						'price' => $_product->get_price(),
-						'qty_price' => $cart_item['line_total'],
-						'image_url' => $this->format_image_url( $image ),
-						'description' => $this->format_description( $_product->post->post_excerpt )
-					);
-					
-					$savecart[] = array(
-						'product_id' => $_product->post->ID,
-						'item_qty' => $cart_item['quantity']
-					);
-					
-				}
-					
 			}
 			
+			set_transient( 'rjcart_' . $this->sess, $savecart, 168 * HOUR_IN_SECONDS);
+			
+			$cartdata = array(
+				'value' =>  $woocommerce->cart->total,
+				'totalItems' => $woocommerce->cart->cart_contents_count,
+			);
+			
+			$js = $this->build_rejoiner_push( $items, $cartdata );
+			
+			echo $js;
+		
 		}
-		
-		set_transient( 'rjcart_' . $this->sess, $savecart, 168 * HOUR_IN_SECONDS);
-		
-		$cartdata = array(
-			'value' =>  $woocommerce->cart->total,
-			'totalItems' => $woocommerce->cart->cart_contents_count,
-		);
-		
-		$js = $this->build_rejoiner_push( $items, $cartdata );
-		
-		echo $js;
 		
 	}
 
