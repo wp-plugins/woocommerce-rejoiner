@@ -48,7 +48,7 @@ class WC_Rejoiner extends WC_Integration {
 			),
 			'rejoiner_domain_name' => array(
 				'title' 			=> __( 'Set Domain Name', 'woocommerce' ),
-				'description' 		=> __( 'Enter your domain for the tracking code. Example: .domain.com or .www.domain.com', 'woocommerce' ),
+				'description' 		=> __( 'Enter your domain for the tracking code. Example: .domain.com or .www.domain.com, be sure to include the leading period.', 'woocommerce' ),
 				'type' 				=> 'text',
 		    	'default' 			=> ''
 			)
@@ -58,7 +58,9 @@ class WC_Rejoiner extends WC_Integration {
     
 	function rejoiner_tracking_code() {
 		
-		if( is_cart() || is_checkout() ) {
+		global $rjconverted;
+		
+		if( ( is_cart() || is_checkout() ) && $rjconverted != true ) {
 				
 			global $woocommerce;
 			
@@ -125,10 +127,9 @@ class WC_Rejoiner extends WC_Integration {
 							'product_id' => $_product->post->ID,
 							'name' => apply_filters( 'woocommerce_cart_item_name', $_product->get_title(), $cart_item, $cart_item_key ) . $variantname,
 							'item_qty' => $cart_item['quantity'],
-							'price' => $_product->get_price(),
-							'qty_price' => $cart_item['line_total'],
+							'price' => $this->format_money( $_product->get_price() ),
+							'qty_price' => $this->format_money( $cart_item['line_total'] ),
 							'image_url' => $this->format_image_url( $image ),
-							'description' => $this->format_description( $_product->post->post_excerpt )
 						);
 		                
 	   					$savecart[] = array(
@@ -144,10 +145,9 @@ class WC_Rejoiner extends WC_Integration {
 							'product_id' => $_product->post->ID,
 							'name' => apply_filters( 'woocommerce_cart_item_name', $_product->get_title(), $cart_item, $cart_item_key ),
 							'item_qty' => $cart_item['quantity'],
-							'price' => $_product->get_price(),
-							'qty_price' => $cart_item['line_total'],
+							'price' => $this->format_money( $_product->get_price() ),
+							'qty_price' => $this->format_money( $cart_item['line_total'] ),
 							'image_url' => $this->format_image_url( $image ),
-							'description' => $this->format_description( $_product->post->post_excerpt )
 						);
 						
 						$savecart[] = array(
@@ -164,7 +164,7 @@ class WC_Rejoiner extends WC_Integration {
 			set_transient( 'rjcart_' . $this->sess, $savecart, 168 * HOUR_IN_SECONDS);
 			
 			$cartdata = array(
-				'value' =>  $woocommerce->cart->total,
+				'value' =>  $this->format_money( $woocommerce->cart->total ),
 				'totalItems' => $woocommerce->cart->cart_contents_count,
 			);
 			
@@ -176,6 +176,12 @@ class WC_Rejoiner extends WC_Integration {
 		
 	}
 
+	function format_money( $number ) {
+		
+		return number_format( (float)$number, 2, '.', '' );
+		
+	}
+	
 	function format_description( $text ) {
 		
 		$text = str_replace( "'", "\'", strip_tags( $text ) );
@@ -273,16 +279,17 @@ EOF;
 
 	function rejoiner_conversion_code( $order_id ) {
 		
+		global $rjconverted;
+		
+		$rjconverted = true;
+		
 		$rejoiner_id = $this->rejoiner_id;
 		$rejoiner_domain_name = $this->rejoiner_domain_name;
 
 		if ( !$rejoiner_id ) {
 			return;
 		}
-		
-		if( !isset( $order_id ) )
-			$order_id = $order->get_order_number();
-		
+				
 		$js = <<<EOF
 <!-- Rejoiner Conversion - added by WooCommerce Rejoiner -->
 
@@ -300,10 +307,6 @@ _rejoiner.push(['sendConversion']);
     var x = document.getElementsByTagName('script')[0];
     x.parentNode.insertBefore(s, x);
 })();
-</script>
-
-<script type='text/javascript'>
-_rejoiner.push(['setCartData', {'customer_order_number': '$order_id'}]);
 </script>
 
 <!-- End Rejoiner Conversion -->                         		

@@ -3,7 +3,7 @@ Contributors: madjax
 Tags: woocommerce, rejoiner, abandoned cart, remarketing, ecommerce, cart abandonment email
 Requires at least: 3.8
 Tested up to: 4.0
-Stable tag: 1.2.1
+Stable tag: 1.2.2
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -36,6 +36,11 @@ This plugin inserts an asynchronous tracking code on your checkout page, and con
 == Screenshots ==
 
 == Changelog ==
+= 1.2.2 =
+* Remove description from Rejoiner JS
+* Better number formatting
+* Prevent display of tracking code on thank you page
+
 = 1.2.1 =
 * Display tracking only on cart and checkout
 
