@@ -125,7 +125,7 @@ class WC_Rejoiner extends WC_Integration {
 		                
 		                $items[] = array(
 							'product_id' => $_product->post->ID,
-							'name' => apply_filters( 'woocommerce_cart_item_name', $_product->get_title(), $cart_item, $cart_item_key ) . $variantname,
+							'name' => $this->escape_for_json( apply_filters( 'woocommerce_cart_item_name', $_product->get_title(), $cart_item, $cart_item_key ) . $variantname ),
 							'item_qty' => $cart_item['quantity'],
 							'price' => $this->format_money( $_product->get_price() ),
 							'qty_price' => $this->format_money( $cart_item['line_total'] ),
@@ -143,7 +143,7 @@ class WC_Rejoiner extends WC_Integration {
 						
 						$items[] = array(
 							'product_id' => $_product->post->ID,
-							'name' => apply_filters( 'woocommerce_cart_item_name', $_product->get_title(), $cart_item, $cart_item_key ),
+							'name' => $this->escape_for_json( apply_filters( 'woocommerce_cart_item_name', $_product->get_title(), $cart_item, $cart_item_key ) ),
 							'item_qty' => $cart_item['quantity'],
 							'price' => $this->format_money( $_product->get_price() ),
 							'qty_price' => $this->format_money( $cart_item['line_total'] ),
@@ -200,6 +200,12 @@ class WC_Rejoiner extends WC_Integration {
 		}
 		
 		return $url;
+		
+	}
+	
+	function escape_for_json( $str ) {
+		
+		return str_ireplace( "'", "\'", $str );
 		
 	}
 	
