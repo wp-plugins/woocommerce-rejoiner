@@ -64,7 +64,6 @@ class WC_Rejoiner extends WC_Integration {
 				
 			global $woocommerce;
 			
-			$subtotal = 0;
 			$items = array();
 			$savecart = array();
 				
@@ -87,9 +86,7 @@ class WC_Rejoiner extends WC_Integration {
 						$image = wc_placeholder_img( 'shop_thumbnail' );
 						
 					}
-	
-					$subtotal = $subtotal+$itemtotal;
-					
+						
 					if( $_product->variation_id > 0 ) {		
 						
 						$variantname = '';
@@ -218,10 +215,11 @@ class WC_Rejoiner extends WC_Integration {
 		
 		$returnUrl = $woocommerce->cart->get_cart_url() . '?rjcart=' . $this->sess;
 		
-		$cart['returnUrl'] = apply_filters( 'rejoiner_returnurl', $returnUrl, $this_sess, $cart );
+		$cart['returnUrl'] = apply_filters( 'rejoiner_returnurl', $returnUrl, $this->sess, $cart );
 		
 		$cartdata = $this->rejoiner_encode( $cart );
 		$cartjs = "_rejoiner.push(['setCartData', $cartdata]);";
+		$itemjs = '';
 		
 		foreach( $items as $item ) {
 			
