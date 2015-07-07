@@ -5,7 +5,7 @@ Plugin URI: http://jacksonwhelan.com/woocommerce-rejoiner/
 Description: Integrates Rejoiner with WooCommerce.
 Author: Jackson Whelan
 Author URI: http://www.jacksonwhelan.com
-Version: 1.2.5
+Version: 1.2.6
 */
 
 // Add the integration to WooCommerce
