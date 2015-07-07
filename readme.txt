@@ -2,8 +2,8 @@
 Contributors: madjax
 Tags: woocommerce, rejoiner, abandoned cart, remarketing, ecommerce, cart abandonment email
 Requires at least: 3.8
-Tested up to: 4.1.1
-Stable tag: 1.2.4
+Tested up to: 4.2.2
+Stable tag: 1.2.6
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -36,6 +36,13 @@ This plugin inserts an asynchronous tracking code on your checkout page, and con
 == Screenshots ==
 
 == Changelog ==
+= 1.2.6 =
+* Move refill cart function hook to wp_loaded
+
+= 1.2.5 =
+* Add new filters: wc_rejoiner_cart_item_name, wc_rejoiner_cart_item_variant, wc_rejoiner_thumb_size - see included sample-functions.php file
+* When user is logged in, set 'email' parameter as part of the setCartData call on cart and checkout, with the customer's email address
+
 = 1.2.4 =
 * Undeclared variable bug fix
 

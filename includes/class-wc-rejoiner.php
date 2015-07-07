@@ -29,7 +29,7 @@ class WC_Rejoiner extends WC_Integration {
 		
 		// Actions
 		add_action( 'woocommerce_update_options_integration_wc_rejoiner', array( $this, 'process_admin_options') );
-		add_action( 'init', array( $this, 'refill_cart' ) );
+		add_action( 'wp_loaded', array( $this, 'refill_cart' ) );
 		
 		// Tracking code
 		add_action( 'wp_footer', array( $this, 'rejoiner_tracking_code' ) );
@@ -74,8 +74,10 @@ class WC_Rejoiner extends WC_Integration {
 				if ( $_product && $_product->exists() && $cart_item['quantity'] > 0 && apply_filters( 'woocommerce_checkout_cart_item_visible', true, $cart_item, $cart_item_key ) ) {
 				
 					$thumb_id = get_post_thumbnail_id( $_product->post->ID );
-	
-					$thumb_url = wp_get_attachment_image_src( $thumb_id, 'shop_thumbnail', true) ;
+					
+					$thumb_size = apply_filters( 'wc_rejoiner_thumb_size', 'shop_thumbnail' );
+					
+					$thumb_url = wp_get_attachment_image_src( $thumb_id, $thumb_size, true) ;
 	
 					if( !empty($thumb_url[0]) ) {
 					
@@ -106,7 +108,7 @@ class WC_Rejoiner extends WC_Integration {
 		                          $label = wc_attribute_label( $taxonomy );
 		 
 		                      } else {
-		                         $value              = apply_filters( 'woocommerce_variation_option_name', $value );
+		                         $value = apply_filters( 'woocommerce_variation_option_name', $value );
 		                         $product_attributes = $cart_item['data']->get_attributes();
 		                         if ( isset( $product_attributes[ str_replace( 'attribute_', '', $name ) ] ) ) {
 		                             $label = wc_attribute_label( $product_attributes[ str_replace( 'attribute_', '', $name ) ]['name'] );
@@ -120,9 +122,12 @@ class WC_Rejoiner extends WC_Integration {
 		                     	                     
 		                }
 		                
+		                $variant = apply_filters( 'wc_rejoiner_cart_item_variant', $variantname );
+		                $item_name = apply_filters( 'woocommerce_cart_item_name', $_product->get_title(), $cart_item, $cart_item_key ) . $variant;		                
+		                
 		                $items[] = array(
 							'product_id' => $_product->post->ID,
-							'name' => $this->escape_for_json( apply_filters( 'woocommerce_cart_item_name', $_product->get_title(), $cart_item, $cart_item_key ) . $variantname ),
+							'name' => $this->escape_for_json( apply_filters( 'wc_rejoiner_cart_item_name', $item_name ) ),
 							'item_qty' => $cart_item['quantity'],
 							'price' => $this->format_money( $_product->get_price() ),
 							'qty_price' => $this->format_money( $cart_item['line_total'] ),
@@ -164,6 +169,10 @@ class WC_Rejoiner extends WC_Integration {
 				'value' =>  $this->format_money( $woocommerce->cart->total ),
 				'totalItems' => $woocommerce->cart->cart_contents_count,
 			);
+			
+			$current_user = wp_get_current_user();
+			if( $current_user instanceof WP_User )
+				$cartdata['email'] = $current_user->user_email;
 			
 			$js = $this->build_rejoiner_push( $items, $cartdata );
 			
@@ -338,7 +347,7 @@ EOF;
 				
 				foreach( $rjcart as $product ) {
 								
-					if( $product['variation_id'] > 0 ) {
+					if( !empty( $product['variation_id'] ) && $product['variation_id'] > 0 ) {
 						
 						$woocommerce->cart->add_to_cart( 
 							$product['product_id'], 
