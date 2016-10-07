@@ -11,8 +11,10 @@
 class WC_Rejoiner extends WC_Integration {
 
 	public function __construct() {
-	
-		session_start();
+		if (!session_id()) {
+			session_start();
+		}
+
 		$this->sess = session_id();
 		
 		$this->id = 'wc_rejoiner';
